@@ -64,10 +64,8 @@ void  Task(void *data1) RUNSISI_LARGE_REENTRANT
 {
 while(1)
 {
-static char xdata temp=0;
 OSTimeDlyHMSM(0,0,1,0); //延时大约1s
 P1^=0x2;
-temp++;
 }
 
 }
@@ -76,10 +74,8 @@ void  Task1(void *data1) RUNSISI_LARGE_REENTRANT
 {
 while(1)
 {
-static char xdata temp=0;
 OSTimeDlyHMSM(0,0,10,0); //延时大约10s
 P1^=0x1;
-temp++;
 }
 
 }
