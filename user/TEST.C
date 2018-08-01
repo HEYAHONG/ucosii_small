@@ -24,8 +24,8 @@
 *********************************************************************************************************
 */
 
-OS_STK   xdata     TaskStk[TASK_STK_SIZE];        /* Tasks stacks                                  */
-OS_STK xdata TaskLedStk[TASK_STK_SIZE]; 
+OS_STK   xdata     TaskStk[TASK_STK_SIZE];        /* Tasks stacks，放在xdata里。  						  */
+OS_STK   xdata     Task1Stk[TASK_STK_SIZE];        /* Tasks stacks，放在xdata里。                           */
 
 /*
 *********************************************************************************************************
@@ -33,10 +33,9 @@ OS_STK xdata TaskLedStk[TASK_STK_SIZE];
 *********************************************************************************************************
 */
 
-        void  Task(void *data1) RUNSISI_LARGE_REENTRANT;                       /* Function prototypes of tasks                  */
-		void TaskLed(void* data1) RUNSISI_LARGE_REENTRANT;
-		void InitTimer0();
-		int ReentrantTest(int* a, int* b, long c)RUNSISI_LARGE_REENTRANT;
+void  Task(void *data1) RUNSISI_LARGE_REENTRANT;                       /* Function prototypes of tasks                  */
+void  Task1(void *data1) RUNSISI_LARGE_REENTRANT;                       /* Function prototypes of tasks                  */
+void InitTimer0();
 
 /*$PAGE*/
 /*
@@ -48,9 +47,9 @@ OS_STK xdata TaskLedStk[TASK_STK_SIZE];
 void  main (void)
 {
     OSInit();                                              /* Initialize uC/OS-II                      */
-	InitTimer0();
-    OSTaskCreate(Task, 2, &TaskStk[0], 2);
-	OSTaskCreate(TaskLed, 1, &TaskLedStk[0], 5);
+	InitTimer0();   //启动定时器0
+	OSTaskCreate(Task,0, &TaskStk[0],4);			  //创建任务函数Task的任务，参数依次为函数指针（即函数名），函数的参数，任务栈，优先级。
+	OSTaskCreate(Task1,0, &Task1Stk[0],5);			  //创建任务函数Task1的任务，参数依次为函数指针（即函数名），函数的参数，任务栈，优先级。
     OSStart();                                             /* Start multitasking                       */
 }
 
@@ -60,61 +59,39 @@ void  main (void)
 *                                              STARTUP TASK
 *********************************************************************************************************
 */
-void  Task (void *pdata1) RUNSISI_LARGE_REENTRANT
+
+void  Task(void *data1) RUNSISI_LARGE_REENTRANT
 {
-#if OS_CRITICAL_METHOD == 3                                /* Allocate storage for CPU status register */
-    OS_CPU_SR  cpu_sr;
-#endif
-	void* param;
-	int a = 1;
-	int b = 2;
-	long c = 3;
-	pdata1 = pdata1;
-	param = pdata1;
-	TR0 = 1;	//Start timer0, it is the heart of the OS.
-	//EA = 1;	//EA already been set by OS_EXIT_CRITICAL() when OS_TaskIdle is created!
-	for (;;)
-	{
-		ReentrantTest(&a, &b, c);
-		P1 = 0xf0;
-		OSTimeDlyHMSM(0, 0, 1, 0);
-		P1 = 0x0f;
-		OSTimeDlyHMSM(0, 0, 1, 0);	
-	}
+while(1)
+{
+static char xdata temp=0;
+OSTimeDlyHMSM(0,0,1,0); //延时大约1s
+P1^=0x2;
+temp++;
 }
 
-void TaskLed(void* data1) RUNSISI_LARGE_REENTRANT
-{
-	int a = 1;
-	int b = 2;
-	long c = 3;
-	data1 = data1;
-	for (;;)
-	{
-		ReentrantTest(&a, &b, c);
-		P0 = 0x06;
-		P2 = 0x00;
-		P2 |= 0x07;
-		OSTimeDlyHMSM(0, 0, 1, 0);
-		P0 &= 0x00;
-		OSTimeDlyHMSM(0, 0, 1, 0);
-	}
 }
 
-int ReentrantTest(int* a, int* b, long c)RUNSISI_LARGE_REENTRANT
+void  Task1(void *data1) RUNSISI_LARGE_REENTRANT
 {
-	int va = *a;
-	int vb = *b;
-	long lc = c;
-	a = b;
-	return a;	
+while(1)
+{
+static char xdata temp=0;
+OSTimeDlyHMSM(0,0,10,0); //延时大约10s
+P1^=0x1;
+temp++;
 }
 
-void InitTimer0()
+}
+
+
+void InitTimer0() //初始化定时0，操作系统核心中断
 {
 	TMOD &= 0xf0;
 	TMOD |= 0x01;
 	TH0 = 0xb1;
 	TL0 = 0xe0;
 	ET0 = 1;
+	TR0 = 1;
+	EA=1;
 }
