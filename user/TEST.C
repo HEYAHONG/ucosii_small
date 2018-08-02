@@ -11,6 +11,7 @@
 */
 
 #include "../source/includes.h"
+#include "LCD1602.H" //导入LCD1602的显示库。
 
 /*
 *********************************************************************************************************
@@ -59,23 +60,47 @@ void  main (void)
 *                                              STARTUP TASK
 *********************************************************************************************************
 */
-
+xdata unsigned short sec=0,min=0,hour=0,day=0;	//分别是记录秒分时天的变量
 void  Task(void *data1) RUNSISI_LARGE_REENTRANT
 {
 while(1)
 {
 OSTimeDlyHMSM(0,0,1,0); //延时大约1s
-P1^=0x2;
+P1^=0x1; //P1.0取反，P1.0接的一个LED，因此会闪烁。
+sec++;
 }
 
 }
 
-void  Task1(void *data1) RUNSISI_LARGE_REENTRANT
+void  Task1(void *data1) RUNSISI_LARGE_REENTRANT	 //此任务对LCD1602液晶进行操作
 {
+Init_LCD1602();
+LCD1602_Dis_Str(0,0,"Current Time:");
+sec=0;
 while(1)
 {
-OSTimeDlyHMSM(0,0,10,0); //延时大约10s
-P1^=0x1;
+sec>=60?(min++,sec=0):sec;
+min>=60?(hour++,sec=0):min;
+hour>=24?(day++,sec=0):hour;//对时分秒的数值进行修正，使其处于合理范围。
+
+LCD1602_Dis_OneChar(2,1,48+day/100);
+LCD1602_Dis_OneChar(3,1,48+day%100/10);
+LCD1602_Dis_OneChar(4,1,48+day%10); //显示天数
+
+LCD1602_Dis_OneChar(6,1,48+hour/10);
+LCD1602_Dis_OneChar(7,1,48+hour%10); //显示小时数
+
+LCD1602_Dis_OneChar(8,1,':');  //分隔符
+
+LCD1602_Dis_OneChar(9,1,48+min/10);
+LCD1602_Dis_OneChar(10,1,48+min%10); //显示分钟数
+
+LCD1602_Dis_OneChar(11,1,':');  //分隔符
+
+LCD1602_Dis_OneChar(12,1,48+sec/10);
+LCD1602_Dis_OneChar(13,1,48+sec%10); //显示秒数
+
+OSTimeDly(15);//延时15个时间片
 }
 
 }
