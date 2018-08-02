@@ -110,8 +110,8 @@ void InitTimer0() //初始化定时0，操作系统核心中断
 {
 	TMOD &= 0xf0;
 	TMOD |= 0x01;
-	TH0 = 0xb1;
-	TL0 = 0xe0;
+	TH0 = 0xb8;
+	TL0 = 0x00;
 	ET0 = 1;
 	TR0 = 1;
 	EA=1;
