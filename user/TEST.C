@@ -80,8 +80,8 @@ sec=0;
 while(1)
 {
 sec>=60?(min++,sec=0):sec;
-min>=60?(hour++,sec=0):min;
-hour>=24?(day++,sec=0):hour;//对时分秒的数值进行修正，使其处于合理范围。
+min>=60?(hour++,min=0):min;
+hour>=24?(day++,hour=0):hour;//对时分秒的数值进行修正，使其处于合理范围。
 
 LCD1602_Dis_OneChar(2,1,48+day/100);
 LCD1602_Dis_OneChar(3,1,48+day%100/10);
