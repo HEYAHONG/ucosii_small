@@ -461,6 +461,11 @@
               <FileType>5</FileType>
               <FilePath>..\user\LCD1602.H</FilePath>
             </File>
+            <File>
+              <FileName>DS1302.H</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\DS1302.H</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

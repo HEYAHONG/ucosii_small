@@ -466,6 +466,11 @@
               <FileType>5</FileType>
               <FilePath>..\user\DS1302.H</FilePath>
             </File>
+            <File>
+              <FileName>KEY.H</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\KEY.H</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
