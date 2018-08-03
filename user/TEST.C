@@ -12,6 +12,8 @@
 
 #include "../source/includes.h"
 #include "LCD1602.H" //导入LCD1602的显示库。
+#include "DS1302.H"	 //DS1302配置
+#include "KEY.H" //导入独立按键配置
 
 /*
 *********************************************************************************************************
@@ -60,14 +62,43 @@ void  main (void)
 *                                              STARTUP TASK
 *********************************************************************************************************
 */
-xdata unsigned short sec=0,min=0,hour=0,day=0;	//分别是记录秒分时天的变量
+xdata unsigned short sec=0,min=0,hour=0;	//分别是记录秒分时的变量
 void  Task(void *data1) RUNSISI_LARGE_REENTRANT
 {
 while(1)
 {
-OSTimeDlyHMSM(0,0,1,0); //延时大约1s
-P1^=0x1; //P1.0取反，P1.0接的一个LED，因此会闪烁。
-sec++;
+OSTimeDly(10); //延时大约1s
+P1^=0x8; //P1.3取反，P1.3接的一个LED，因此会闪烁。
+
+write_1302(0x8e,0x00); //允许读DS1302
+
+if(!S2)   //S2被按下，小时数+1
+{
+OSTimeDly(1);
+if(!S2) {
+write_1302(0x84,((hour+1)%24%10+(hour+1)%24/10*16)); 
+while(!S2) OSTimeDly(1);
+}
+}
+
+if(!S3)   //S3被按下，分钟数+1
+{
+OSTimeDly(1);
+if(!S3) {
+write_1302(0x82,((min+1)%60%10+(min+1)%60/10*16)); 
+while(!S3) OSTimeDly(1);
+}
+}
+
+if(!S4)   //S4被按下，秒数+1
+{
+OSTimeDly(1);
+if(!S4) {
+write_1302(0x80,((sec+1)%60%10+(sec+1)%60/10*16)%60); 
+while(!S4) OSTimeDly(1);
+}
+}
+
 }
 
 }
@@ -79,26 +110,25 @@ LCD1602_Dis_Str(0,0,"Current Time:");
 sec=0;
 while(1)
 {
-sec>=60?(min++,sec=0):sec;
-min>=60?(hour++,min=0):min;
-hour>=24?(day++,hour=0):hour;//对时分秒的数值进行修正，使其处于合理范围。
 
-LCD1602_Dis_OneChar(2,1,48+day/100);
-LCD1602_Dis_OneChar(3,1,48+day%100/10);
-LCD1602_Dis_OneChar(4,1,48+day%10); //显示天数
+write_1302(0x8e,0x00);
+hour=read_1302(0x85);
+min=read_1302(0x83);
+sec=read_1302(0x81);	
+write_1302(0x8e,0x80);	 //读DS1302
 
-LCD1602_Dis_OneChar(6,1,48+hour/10);
-LCD1602_Dis_OneChar(7,1,48+hour%10); //显示小时数
+LCD1602_Dis_OneChar(4,1,48+hour/10);
+LCD1602_Dis_OneChar(5,1,48+hour%10); //显示小时数
 
-LCD1602_Dis_OneChar(8,1,':');  //分隔符
+LCD1602_Dis_OneChar(6,1,':');  //分隔符
 
-LCD1602_Dis_OneChar(9,1,48+min/10);
-LCD1602_Dis_OneChar(10,1,48+min%10); //显示分钟数
+LCD1602_Dis_OneChar(7,1,48+min/10);
+LCD1602_Dis_OneChar(8,1,48+min%10); //显示分钟数
 
-LCD1602_Dis_OneChar(11,1,':');  //分隔符
+LCD1602_Dis_OneChar(9,1,':');  //分隔符
 
-LCD1602_Dis_OneChar(12,1,48+sec/10);
-LCD1602_Dis_OneChar(13,1,48+sec%10); //显示秒数
+LCD1602_Dis_OneChar(10,1,48+sec/10);
+LCD1602_Dis_OneChar(11,1,48+sec%10); //显示秒数
 
 OSTimeDly(15);//延时15个时间片
 }
